@@ -20,6 +20,11 @@ interface ChartDisplayProps {
 }
 
 export default function ChartDisplay({ data, config }: ChartDisplayProps) {
+  // Define constants first
+  const currency = config.country === "UK" ? "£" : "$";
+  const isMTR = config.metric === "mtr";
+  const isPercent = isMTR;
+
   // Group data by num_children
   const childrenCounts = [...new Set(data.map(d => d.num_children))].sort();
 
@@ -45,10 +50,6 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
       chartData[i][`${numChildren}_children`] = value;
     });
   });
-
-  const currency = config.country === "UK" ? "£" : "$";
-  const isMTR = config.metric === "mtr";
-  const isPercent = isMTR;
 
   const formatValue = (value: number) => {
     if (isPercent) {
