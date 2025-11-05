@@ -19,36 +19,47 @@ export default function Home() {
   });
 
   const handleCalculate = async (newConfig: any) => {
+    console.log("handleCalculate called with:", newConfig);
     setLoading(true);
     setConfig(newConfig);
 
     try {
       const endpoint = newConfig.country === "US" ? "/calculate/us" : "/calculate/uk";
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
+      const url = `http://localhost:8000${endpoint}`;
+
+      const payload = {
+        max_children: newConfig.maxChildren,
+        year: newConfig.year,
+        metric: newConfig.metric,
+        view: newConfig.view,
+        ...(newConfig.country === "UK" ? {
+          region: newConfig.region,
+          rent: newConfig.rent,
+          childcare_per_child: newConfig.childcarePerChild,
+        } : {
+          marital_status: newConfig.maritalStatus || "single",
+          state_code: newConfig.stateCode || "TX",
+          spouse_income: newConfig.spouseIncome || 0,
+          include_health_benefits: newConfig.includeHealthBenefits !== false,
+        }),
+      };
+
+      console.log("Fetching:", url, "with payload:", payload);
+
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          max_children: newConfig.maxChildren,
-          year: newConfig.year,
-          metric: newConfig.metric,
-          view: newConfig.view,
-          ...(newConfig.country === "UK" ? {
-            region: newConfig.region,
-            rent: newConfig.rent,
-            childcare_per_child: newConfig.childcarePerChild,
-          } : {
-            marital_status: newConfig.maritalStatus,
-            state_code: newConfig.stateCode,
-            spouse_income: newConfig.spouseIncome,
-            include_health_benefits: newConfig.includeHealthBenefits,
-          }),
-        }),
+        body: JSON.stringify(payload),
       });
 
+      console.log("Response status:", response.status);
       const result = await response.json();
+      console.log("Result data length:", result.data?.length);
+
       setData(result.data);
     } catch (error) {
       console.error("Calculation error:", error);
+      alert(`Error: ${error}`);
     } finally {
       setLoading(false);
     }
@@ -75,7 +86,8 @@ export default function Home() {
 
           <div className="lg:col-span-3">
             {loading && (
-              <div className="flex items-center justify-center h-96">
+              <div className="flex flex-col items-center justify-center h-96">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#319795] mb-4"></div>
                 <div className="text-lg text-gray-500">Calculating...</div>
               </div>
             )}

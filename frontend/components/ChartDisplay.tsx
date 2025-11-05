@@ -77,15 +77,16 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis
             dataKey="income"
-            tickFormatter={(value) => `${currency}${(value / 1000).toFixed(0)}k`}
+            tickFormatter={(value) => `${currency}${Math.round(value / 1000)}k`}
             stroke="#6B7280"
             style={{ fontFamily: "Inter, sans-serif" }}
+            ticks={[0, 20000, 40000, 60000, 80000, 100000, 120000, 140000, 160000, 180000, 200000]}
           />
           <YAxis
-            tickFormatter={isPercent ? (v) => `${(v * 100).toFixed(0)}%` : (v) => `${currency}${(v / 1000).toFixed(0)}k`}
+            tickFormatter={isPercent ? (v) => `${(v * 100).toFixed(0)}%` : (v) => `${currency}${Math.round(v / 1000)}k`}
             stroke="#6B7280"
             style={{ fontFamily: "Inter, sans-serif" }}
-            domain={isPercent && config.view === "absolute" ? [0, 1] : ["auto", "auto"]}
+            domain={isPercent ? [-1, 1] : ["auto", "auto"]}
           />
           <Tooltip
             formatter={formatValue}

@@ -55,19 +55,28 @@ export default function ConfigPanel({ onCalculate, initialConfig }: ConfigPanelP
     <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
       <h2 className="text-xl font-semibold text-gray-900 mb-4">Configuration</h2>
 
-      {/* Country */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Country
-        </label>
-        <select
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#319795] focus:border-transparent"
+      {/* Country Tabs */}
+      <div className="flex space-x-2">
+        <button
+          onClick={() => setCountry("US")}
+          className={`flex-1 py-2 px-3 rounded-md font-medium transition-colors ${
+            country === "US"
+              ? "bg-[#319795] text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
         >
-          <option value="US">United States</option>
-          <option value="UK">United Kingdom</option>
-        </select>
+          🇺🇸 US
+        </button>
+        <button
+          onClick={() => setCountry("UK")}
+          className={`flex-1 py-2 px-3 rounded-md font-medium transition-colors ${
+            country === "UK"
+              ? "bg-[#319795] text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          🇬🇧 UK
+        </button>
       </div>
 
       {/* Max Children */}
