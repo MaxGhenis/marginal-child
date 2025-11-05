@@ -163,24 +163,56 @@ def calculate_us_mtr_absolute(
     marital_status: str,
     state_code: str,
     spouse_income: float,
+    include_health_benefits: bool = True,
     progress_callback: Optional[Callable] = None,
 ) -> pd.DataFrame:
-    """Calculate absolute MTR for US households."""
+    """Calculate absolute MTR for US households.
+
+    Args:
+        include_health_benefits: If True, calculate MTR from net income including health benefits
+    """
+    import numpy as np
+
     results = []
     income_points = list(range(INCOME_MIN, INCOME_MAX + 1, INCOME_STEP))
 
-    for num_kids in range(max_children + 1):
-        if progress_callback:
-            progress_callback(num_kids + 1, max_children + 1, f"Calculating MTR for {num_kids} children...")
+    if include_health_benefits:
+        # Calculate MTR from gradient of net income including health benefits
+        for num_kids in range(max_children + 1):
+            if progress_callback:
+                progress_callback(num_kids + 1, max_children + 1, f"Calculating MTR for {num_kids} children...")
 
-        situation = create_us_household_situation(num_kids, year, marital_status, state_code, spouse_income)
-        situation["axes"] = [[{"name": "employment_income", "count": len(income_points), "min": INCOME_MIN, "max": INCOME_MAX}]]
+            situation = create_us_household_situation(num_kids, year, marital_status, state_code, spouse_income)
+            situation["axes"] = [[{"name": "employment_income", "count": len(income_points), "min": INCOME_MIN, "max": INCOME_MAX}]]
 
-        sim = USSimulation(situation=situation)
-        mtr_values = sim.calculate("marginal_tax_rate", year)
+            sim = USSimulation(situation=situation)
+            net_incomes = sim.calculate("household_net_income_including_health_benefits", year)
 
-        for i, income in enumerate(income_points):
-            results.append({"income": income, "num_children": num_kids, "mtr": float(mtr_values[i])})
+            # Calculate MTR as 1 - d(net_income)/d(income)
+            mtr_values = np.zeros(len(income_points))
+            for i in range(len(income_points) - 1):
+                d_income = income_points[i+1] - income_points[i]
+                d_net = net_incomes[i+1] - net_incomes[i]
+                mtr_values[i] = 1 - (d_net / d_income)
+            # Last point same as second-to-last
+            mtr_values[-1] = mtr_values[-2] if len(income_points) > 1 else 0
+
+            for i, income in enumerate(income_points):
+                results.append({"income": income, "num_children": num_kids, "mtr": float(mtr_values[i])})
+    else:
+        # Use built-in marginal_tax_rate (excludes health benefits)
+        for num_kids in range(max_children + 1):
+            if progress_callback:
+                progress_callback(num_kids + 1, max_children + 1, f"Calculating MTR for {num_kids} children...")
+
+            situation = create_us_household_situation(num_kids, year, marital_status, state_code, spouse_income)
+            situation["axes"] = [[{"name": "employment_income", "count": len(income_points), "min": INCOME_MIN, "max": INCOME_MAX}]]
+
+            sim = USSimulation(situation=situation)
+            mtr_values = sim.calculate("marginal_tax_rate", year)
+
+            for i, income in enumerate(income_points):
+                results.append({"income": income, "num_children": num_kids, "mtr": float(mtr_values[i])})
 
     return pd.DataFrame(results)
 

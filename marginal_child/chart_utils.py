@@ -77,14 +77,14 @@ def clip_mtr_value(value: float) -> float:
 
 
 def smooth_marginal_mtr(data: List[Dict[str, Any]], window_size: int = 10) -> List[Dict[str, Any]]:
-    """Smooth marginal MTR data using moving average.
+    """Smooth marginal MTR data using centered moving average.
 
+    Uses the same approach as ACA-Calc: centered window with size//2 on each side.
     Marginal MTR (change per child) amplifies noise from numerical gradients.
-    Apply smoothing to make patterns visible.
 
     Args:
         data: List of dicts with 'marginal_mtr' values
-        window_size: Size of moving average window
+        window_size: Size of moving average window (default 10)
 
     Returns:
         Smoothed data
@@ -93,6 +93,15 @@ def smooth_marginal_mtr(data: List[Dict[str, Any]], window_size: int = 10) -> Li
         return data
 
     import numpy as np
+
+    def moving_average(arr, window_size):
+        """Apply centered moving average (ACA-Calc approach)."""
+        result = np.copy(arr)
+        for i in range(len(arr)):
+            start = max(0, i - window_size // 2)
+            end = min(len(arr), i + window_size // 2 + 1)
+            result[i] = np.mean(arr[start:end])
+        return result
 
     # Group by num_children
     children_counts = sorted(set(d["num_children"] for d in data))
@@ -104,11 +113,11 @@ def smooth_marginal_mtr(data: List[Dict[str, Any]], window_size: int = 10) -> Li
 
         values = np.array([d["marginal_mtr"] for d in child_data])
 
-        # Apply moving average
-        if len(values) >= window_size:
-            smoothed_values = np.convolve(values, np.ones(window_size)/window_size, mode='same')
-        else:
-            smoothed_values = values
+        # Apply centered moving average
+        smoothed_values = moving_average(values, window_size)
+
+        # Clip to reasonable bounds after smoothing
+        smoothed_values = np.clip(smoothed_values, -1.0, 1.0)
 
         for i, d in enumerate(child_data):
             smoothed.append({

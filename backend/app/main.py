@@ -97,6 +97,7 @@ async def calculate_us(request: USCalculationRequest):
                 request.marital_status,
                 request.state_code,
                 request.spouse_income,
+                request.include_health_benefits,
             )
             if request.view == "marginal":
                 df = derive_marginal_from_absolute(df, "mtr", "marginal_mtr")
