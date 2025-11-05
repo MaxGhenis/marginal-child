@@ -3,5 +3,4 @@ plotly>=5.17.0
 pandas>=2.1.0
 numpy>=2.1.0
 policyengine-us>=1.0.0
-# Temporary: use fixed policyengine-core from PR until merged
-policyengine-core @ git+https://github.com/MaxGhenis/policyengine-core.git@fix-numpy2-structured-arrays
+policyengine-uk>=2.55.0

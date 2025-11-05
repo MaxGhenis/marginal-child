@@ -1,11 +1,21 @@
 """Constants for the Marginal Child application."""
 
-# PolicyEngine brand colors
+# PolicyEngine app-v2 design tokens
 COLORS = {
-    "primary": "#2C6496",
-    "secondary": "#39C6C0",
-    "gradient": ["#D1E5F0", "#92C5DE", "#2166AC", "#053061"],
+    "primary": "#319795",  # Teal-500
+    "secondary": "#026AA2",  # Blue-700
+    "gray_400": "#9CA3AF",
+    "gray_700": "#344054",
+    "teal_300": "#4FD1C5",
+    "teal_500": "#319795",
+    "gradient": ["#9CA3AF", "#81E6D9", "#4FD1C5", "#319795"],  # Gray to teal
 }
+
+# Font
+FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+
+# Logo
+LOGO_URL = "https://raw.githubusercontent.com/PolicyEngine/policyengine-app/master/src/images/logos/policyengine/teal.png"
 
 # Calculation parameters
 MAX_CHILDREN = 4
@@ -71,3 +81,28 @@ US_STATES = [
 ]
 
 DEFAULT_STATE_INDEX = 43  # Texas
+
+# UK Regions (ITL1)
+UK_REGIONS = [
+    ("LONDON", "London"),
+    ("SOUTH_EAST", "South East"),
+    ("SOUTH_WEST", "South West"),
+    ("EAST_OF_ENGLAND", "East of England"),
+    ("WEST_MIDLANDS", "West Midlands"),
+    ("EAST_MIDLANDS", "East Midlands"),
+    ("YORKSHIRE", "Yorkshire and the Humber"),
+    ("NORTH_WEST", "North West"),
+    ("NORTH_EAST", "North East"),
+    ("SCOTLAND", "Scotland"),
+    ("WALES", "Wales"),
+    ("NORTHERN_IRELAND", "Northern Ireland"),
+]
+
+DEFAULT_REGION_INDEX = 0  # London
+
+# UK-specific constants
+UK_INCOME_MAX = 200000  # £200k max for UK
+UK_DEFAULT_RENT = 12000  # £1k/month
+UK_DEFAULT_CHILDCARE_PER_CHILD = 12000  # £1,000/month for under-5s full-time nursery
+UK_CHILD_AGES = [1, 3, 5]  # Young children needing full-time childcare
+UK_PARENT_AGE = 35
