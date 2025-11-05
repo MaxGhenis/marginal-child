@@ -92,7 +92,7 @@ export default function ConfigPanel({ onCalculate, initialConfig }: ConfigPanelP
           max={6}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#319795] focus:border-transparent"
         />
-        <p className="text-xs text-gray-500 mt-1">Analysis from 0 to this number</p>
+        <p className="text-xs text-gray-500 mt-1">{country === "UK" ? "Analyse" : "Analyze"} from 0 to this number</p>
       </div>
 
       <div className="border-t border-gray-200 my-4"></div>

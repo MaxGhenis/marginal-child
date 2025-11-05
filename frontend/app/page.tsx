@@ -73,7 +73,7 @@ export default function Home() {
             The Marginal Child
           </h1>
           <p className="mt-2 text-gray-600">
-            Analyze marginal tax rates and benefits by number of children
+            {config.country === "UK" ? "Analyse" : "Analyze"} marginal tax rates and benefits by number of children
           </p>
         </div>
       </header>

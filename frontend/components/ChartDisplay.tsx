@@ -35,7 +35,14 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
         ? (config.view === "absolute" ? "net_income" : "marginal_benefit")
         : (config.view === "absolute" ? "mtr" : "marginal_mtr");
 
-      chartData[i][`${numChildren}_children`] = d[valueKey];
+      let value = d[valueKey];
+
+      // Clip MTR values to [-1, 1] range
+      if (isPercent) {
+        value = Math.max(-1, Math.min(1, value));
+      }
+
+      chartData[i][`${numChildren}_children`] = value;
     });
   });
 
@@ -87,6 +94,7 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
             stroke="#6B7280"
             style={{ fontFamily: "Inter, sans-serif" }}
             domain={isPercent ? [-1, 1] : ["auto", "auto"]}
+            ticks={isPercent ? [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1] : undefined}
           />
           <Tooltip
             formatter={formatValue}
