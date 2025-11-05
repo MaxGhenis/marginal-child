@@ -74,3 +74,46 @@ def clip_mtr_value(value: float) -> float:
         Clipped value between -1 and 1
     """
     return max(-1.0, min(1.0, value))
+
+
+def smooth_marginal_mtr(data: List[Dict[str, Any]], window_size: int = 10) -> List[Dict[str, Any]]:
+    """Smooth marginal MTR data using moving average.
+
+    Marginal MTR (change per child) amplifies noise from numerical gradients.
+    Apply smoothing to make patterns visible.
+
+    Args:
+        data: List of dicts with 'marginal_mtr' values
+        window_size: Size of moving average window
+
+    Returns:
+        Smoothed data
+    """
+    if not data or "marginal_mtr" not in data[0]:
+        return data
+
+    import numpy as np
+
+    # Group by num_children
+    children_counts = sorted(set(d["num_children"] for d in data))
+
+    smoothed = []
+    for num_children in children_counts:
+        child_data = [d for d in data if d["num_children"] == num_children]
+        child_data = sorted(child_data, key=lambda x: x["income"])
+
+        values = np.array([d["marginal_mtr"] for d in child_data])
+
+        # Apply moving average
+        if len(values) >= window_size:
+            smoothed_values = np.convolve(values, np.ones(window_size)/window_size, mode='same')
+        else:
+            smoothed_values = values
+
+        for i, d in enumerate(child_data):
+            smoothed.append({
+                **d,
+                "marginal_mtr": float(smoothed_values[i])
+            })
+
+    return smoothed

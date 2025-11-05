@@ -17,6 +17,8 @@ from marginal_child.pure_calculations import (
     calculate_us_net_income_absolute,
     derive_marginal_from_absolute,
 )
+from marginal_child.chart_utils import smooth_marginal_mtr
+import pandas as pd
 
 app = FastAPI(title="The Marginal Child API", version="2.0.0")
 
@@ -98,6 +100,9 @@ async def calculate_us(request: USCalculationRequest):
             )
             if request.view == "marginal":
                 df = derive_marginal_from_absolute(df, "mtr", "marginal_mtr")
+                data_list = df.to_dict(orient="records")
+                data_list = smooth_marginal_mtr(data_list, window_size=20)
+                df = pd.DataFrame(data_list)
 
         return {"data": df.to_dict(orient="records")}
 
@@ -131,6 +136,9 @@ async def calculate_uk(request: UKCalculationRequest):
             )
             if request.view == "marginal":
                 df = derive_marginal_from_absolute(df, "mtr", "marginal_mtr")
+                data_list = df.to_dict(orient="records")
+                data_list = smooth_marginal_mtr(data_list, window_size=20)
+                df = pd.DataFrame(data_list)
 
         return {"data": df.to_dict(orient="records")}
 

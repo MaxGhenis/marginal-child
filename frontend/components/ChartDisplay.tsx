@@ -24,6 +24,10 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
   const currency = config.country === "UK" ? "£" : "$";
   const isMTR = config.metric === "mtr";
   const isPercent = isMTR;
+  const maxIncome = config.country === "UK" ? 200000 : 500000;
+  const xTicks = config.country === "UK"
+    ? [0, 20000, 40000, 60000, 80000, 100000, 120000, 140000, 160000, 180000, 200000]
+    : [0, 50000, 100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000];
 
   // Group data by num_children
   const childrenCounts = [...new Set(data.map(d => d.num_children))].sort();
@@ -88,7 +92,7 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
             tickFormatter={(value) => `${currency}${Math.round(value / 1000)}k`}
             stroke="#6B7280"
             style={{ fontFamily: "Inter, sans-serif" }}
-            ticks={[0, 20000, 40000, 60000, 80000, 100000, 120000, 140000, 160000, 180000, 200000]}
+            ticks={xTicks}
           />
           <YAxis
             tickFormatter={isPercent ? (v) => `${(v * 100).toFixed(0)}%` : (v) => `${currency}${Math.round(v / 1000)}k`}

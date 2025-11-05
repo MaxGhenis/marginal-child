@@ -7,6 +7,7 @@ import ChartDisplay from "@/components/ChartDisplay";
 export default function Home() {
   const [data, setData] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [currentCountry, setCurrentCountry] = useState("UK"); // Track current form state for UI
   const [config, setConfig] = useState({
     country: "UK",
     metric: "mtr",
@@ -21,6 +22,7 @@ export default function Home() {
     console.log("handleCalculate called with:", newConfig);
     setLoading(true);
     setConfig(newConfig);
+    setCurrentCountry(newConfig.country);
 
     try {
       const endpoint = newConfig.country === "US" ? "/calculate/us" : "/calculate/uk";
@@ -72,7 +74,7 @@ export default function Home() {
             The Marginal Child
           </h1>
           <p className="mt-2 text-gray-600">
-            {config.country === "UK" ? "Analyse" : "Analyze"} marginal tax rates and benefits by number of children
+            {currentCountry === "UK" ? "Analyse" : "Analyze"} marginal tax rates and benefits by number of children
           </p>
         </div>
       </header>
@@ -80,7 +82,12 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1">
-            <ConfigPanel onCalculate={handleCalculate} initialConfig={config} hasData={data !== null} />
+            <ConfigPanel
+              onCalculate={handleCalculate}
+              initialConfig={config}
+              hasData={data !== null}
+              onCountryChange={setCurrentCountry}
+            />
           </div>
 
           <div className="lg:col-span-3">

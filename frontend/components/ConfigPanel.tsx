@@ -21,9 +21,10 @@ interface ConfigPanelProps {
   onCalculate: (config: any) => void;
   initialConfig: any;
   hasData?: boolean;
+  onCountryChange?: (country: string) => void;
 }
 
-export default function ConfigPanel({ onCalculate, initialConfig, hasData }: ConfigPanelProps) {
+export default function ConfigPanel({ onCalculate, initialConfig, hasData, onCountryChange }: ConfigPanelProps) {
   const [country, setCountry] = useState(initialConfig.country);
   const [metric, setMetric] = useState(initialConfig.metric);
   const [view, setView] = useState(initialConfig.view);
@@ -81,7 +82,10 @@ export default function ConfigPanel({ onCalculate, initialConfig, hasData }: Con
       {/* Country Tabs */}
       <div className="flex space-x-2">
         <button
-          onClick={() => setCountry("US")}
+          onClick={() => {
+            setCountry("US");
+            if (onCountryChange) onCountryChange("US");
+          }}
           className={`flex-1 py-2 px-3 rounded-md font-medium transition-colors ${
             country === "US"
               ? "bg-[#319795] text-white"
@@ -91,7 +95,10 @@ export default function ConfigPanel({ onCalculate, initialConfig, hasData }: Con
           🇺🇸 US
         </button>
         <button
-          onClick={() => setCountry("UK")}
+          onClick={() => {
+            setCountry("UK");
+            if (onCountryChange) onCountryChange("UK");
+          }}
           className={`flex-1 py-2 px-3 rounded-md font-medium transition-colors ${
             country === "UK"
               ? "bg-[#319795] text-white"
