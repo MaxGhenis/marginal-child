@@ -17,7 +17,6 @@ export default function Home() {
     rent: 12000,
     childcarePerChild: 12000,
   });
-
   const handleCalculate = async (newConfig: any) => {
     console.log("handleCalculate called with:", newConfig);
     setLoading(true);
@@ -81,7 +80,7 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1">
-            <ConfigPanel onCalculate={handleCalculate} initialConfig={config} />
+            <ConfigPanel onCalculate={handleCalculate} initialConfig={config} hasData={data !== null} />
           </div>
 
           <div className="lg:col-span-3">

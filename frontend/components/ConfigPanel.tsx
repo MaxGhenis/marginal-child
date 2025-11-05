@@ -20,9 +20,10 @@ const UK_REGIONS = [
 interface ConfigPanelProps {
   onCalculate: (config: any) => void;
   initialConfig: any;
+  hasData?: boolean;
 }
 
-export default function ConfigPanel({ onCalculate, initialConfig }: ConfigPanelProps) {
+export default function ConfigPanel({ onCalculate, initialConfig, hasData }: ConfigPanelProps) {
   const [country, setCountry] = useState(initialConfig.country);
   const [metric, setMetric] = useState(initialConfig.metric);
   const [view, setView] = useState(initialConfig.view);
@@ -34,21 +35,43 @@ export default function ConfigPanel({ onCalculate, initialConfig }: ConfigPanelP
   const [rent, setRent] = useState((initialConfig.rent || 12000) / 12);
   const [childcare, setChildcare] = useState((initialConfig.childcarePerChild || 12000) / 12);
 
+  const buildConfig = () => ({
+    country,
+    metric,
+    view,
+    maxChildren,
+    year,
+    ...(country === "UK" ? {
+      region,
+      rent: rent * 12,
+      childcarePerChild: childcare * 12,
+    } : {}),
+  });
+
   const handleSubmit = () => {
-    const config = {
-      country,
-      metric,
-      view,
-      maxChildren,
-      year,
-      ...(country === "UK" ? {
-        region,
-        rent: rent * 12,
-        childcarePerChild: childcare * 12,
-      } : {}),
-    };
+    const config = buildConfig();
     console.log("Calculate clicked with config:", config);
     onCalculate(config);
+  };
+
+  const handleMetricChange = (newMetric: string) => {
+    setMetric(newMetric);
+    // Auto-trigger calculation when metric changes (if we already have data)
+    if (hasData) {
+      setTimeout(() => {
+        onCalculate({ ...buildConfig(), metric: newMetric });
+      }, 0);
+    }
+  };
+
+  const handleViewChange = (newView: string) => {
+    setView(newView);
+    // Auto-trigger calculation when view changes (if we already have data)
+    if (hasData) {
+      setTimeout(() => {
+        onCalculate({ ...buildConfig(), view: newView });
+      }, 0);
+    }
   };
 
   return (
@@ -97,61 +120,61 @@ export default function ConfigPanel({ onCalculate, initialConfig }: ConfigPanelP
 
       <div className="border-t border-gray-200 my-4"></div>
 
-      {/* Metric */}
+      {/* Metric Tabs */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Metric
         </label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="net_income"
-              checked={metric === "net_income"}
-              onChange={(e) => setMetric(e.target.value)}
-              className="text-[#319795] focus:ring-[#319795]"
-            />
-            <span className="ml-2 text-sm text-gray-700">Net Income</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="mtr"
-              checked={metric === "mtr"}
-              onChange={(e) => setMetric(e.target.value)}
-              className="text-[#319795] focus:ring-[#319795]"
-            />
-            <span className="ml-2 text-sm text-gray-700">Marginal Tax Rate</span>
-          </label>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleMetricChange("net_income")}
+            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+              metric === "net_income"
+                ? "bg-[#319795] text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Net Income
+          </button>
+          <button
+            onClick={() => handleMetricChange("mtr")}
+            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+              metric === "mtr"
+                ? "bg-[#319795] text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            MTR
+          </button>
         </div>
       </div>
 
-      {/* View */}
+      {/* View Tabs */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           View
         </label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="absolute"
-              checked={view === "absolute"}
-              onChange={(e) => setView(e.target.value)}
-              className="text-[#319795] focus:ring-[#319795]"
-            />
-            <span className="ml-2 text-sm text-gray-700">Absolute</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="marginal"
-              checked={view === "marginal"}
-              onChange={(e) => setView(e.target.value)}
-              className="text-[#319795] focus:ring-[#319795]"
-            />
-            <span className="ml-2 text-sm text-gray-700">Marginal (per child)</span>
-          </label>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleViewChange("absolute")}
+            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+              view === "absolute"
+                ? "bg-[#319795] text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Absolute
+          </button>
+          <button
+            onClick={() => handleViewChange("marginal")}
+            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+              view === "marginal"
+                ? "bg-[#319795] text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Per Child
+          </button>
         </div>
       </div>
 
