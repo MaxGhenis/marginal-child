@@ -4,75 +4,111 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-The Marginal Child is a Streamlit application that analyzes how government benefits change with each additional child using PolicyEngine-US microsimulation. It visualizes marginal benefits across different income levels for various household configurations.
+The Marginal Child analyzes how government benefits and marginal tax rates change with each additional child using PolicyEngine microsimulation for both US and UK. It displays:
+- **Marginal benefit**: Net income change from having an additional child
+- **Marginal tax rate**: Change in MTR (in pp) from having an additional child
+
+Both can be viewed in "By # Children" (absolute) or "Per Additional Child" (incremental) modes.
+
+## Quick Start
+
+```bash
+# Frontend (Next.js)
+cd frontend && npm install && npm run dev
+
+# Backend runs on Modal - no local setup needed
+# Production API: https://maxghenis--marginal-child-api-fastapi-app.modal.run
+```
+
+Frontend: http://localhost:3001 (uses local backend via .env.local, or Modal in production)
 
 ## Commands
 
 ### Development
 ```bash
-# Install dependencies
-make install
-# or
-pip install -r requirements.txt
+# Frontend
+cd frontend && npm run dev
 
-# Run the Streamlit application
-make run
-# or
-streamlit run app.py
+# Local backend (optional - for testing changes)
+cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8000
 
-# Clean up cache and temporary files
-make clean
+# Deploy backend to Modal
+cd backend && modal deploy modal_app.py
 ```
 
-### Testing
+### Testing & Linting
 ```bash
-# Run individual test files (no test framework required)
-python test_axes_final.py
-python test_health_benefits.py
+make test          # pytest with 80% coverage requirement
+make format        # black + isort (79 char)
+make lint          # black --check, isort --check, flake8, mypy
 ```
 
 ## Architecture
 
-### Core Calculation Engine
-The app uses PolicyEngine-US's `axes` feature for efficient income variation calculations:
-- **Axes must be embedded INSIDE the situation dictionary** (not passed separately)
-- Creates multiple income scenarios in a single simulation for performance
-- Format: `situation["axes"] = [[{"name": "employment_income", "count": N, "min": 0, "max": 200000}]]`
+```
+frontend/                    # Next.js 14 + TypeScript + Tailwind + Recharts
+├── app/page.tsx            # Main page, fetches all 4 data combinations
+└── components/
+    ├── ConfigPanel.tsx     # Household config (country, state, marital status, etc.)
+    └── ChartDisplay.tsx    # Two tab rows: [Net Income | MTR] x [By # | Per Child]
 
-### Key Functions in app.py
-- `calculate_marginal_child_benefits()`: Main calculation function using PolicyEngine axes
-  - Calculates net income for 0-4 children across income range ($0-$200k)
-  - Returns marginal benefit per additional child
-  - Handles both single and married households
-  - Optionally includes health insurance value in net income
+backend/
+├── app/main.py             # FastAPI endpoints
+└── modal_app.py            # Modal deployment config (Python 3.13)
 
-### State Management
-- Uses Streamlit's native state management
-- Key inputs: marital status, state code, spouse income, health benefits toggle
-- Real-time recalculation on input change
+marginal_child/             # Pure Python package (no UI dependencies)
+├── pure_calculations.py    # PolicyEngine calculation functions
+├── chart_utils.py          # Data transformation, smoothing
+└── constants.py            # Design tokens, states, regions
+```
 
-### Visualization
-- Uses Plotly for interactive charts
-- PolicyEngine brand colors defined in COLORS dict
-- Shows marginal benefits for 1st, 2nd, and 3rd child
-- Displays average benefit statistics
+## API
 
-## PolicyEngine-US Integration
+**Production**: https://maxghenis--marginal-child-api-fastapi-app.modal.run
 
-### Situation Structure
-All PolicyEngine simulations require these entity groups:
-- `people`: Individual entities (adults, children)
-- `families`: Family groupings
-- `households`: Household entity with state_code
-- `tax_units`: Tax filing units
-- `spm_units`: Supplemental Poverty Measure units
+### POST /calculate/us
+```json
+{
+  "max_children": 3, "year": 2025,
+  "marital_status": "single", "state_code": "CA",
+  "spouse_income": 0, "include_health_benefits": true,
+  "metric": "net_income|mtr", "view": "absolute|marginal"
+}
+```
 
-### Performance Optimization
-- Uses axes for income variation (81x faster than individual simulations)
-- Calculates all income points in single simulation per child count
-- Progress bars for user feedback during calculations
+### POST /calculate/uk
+```json
+{
+  "max_children": 3, "year": 2025,
+  "region": "LONDON", "rent": 12000, "childcare_per_child": 12000,
+  "metric": "net_income|mtr", "view": "absolute|marginal"
+}
+```
 
-## Testing Approach
-- Standalone Python test files (no pytest/unittest framework)
-- Direct execution: `python test_filename.py`
-- Tests verify axes functionality and benefit calculations
+## Key Implementation Details
+
+### PolicyEngine Axes
+The `axes` feature must be embedded INSIDE the situation dict:
+```python
+situation["axes"] = [[{"name": "employment_income", "count": 500, "min": 0, "max": 500000}]]
+sim = Simulation(situation=situation)
+```
+
+### MTR with Health Benefits (US)
+Computed from numerical gradient since `marginal_tax_rate` doesn't include health:
+```python
+mtr = 1 - (net_income[i+1] - net_income[i]) / (income[i+1] - income[i])
+```
+
+### Entity Structure
+- **US**: `people`, `families`, `households`, `tax_units`, `spm_units`
+- **UK**: `people`, `benunits`, `households`
+
+## Deployment
+
+- **Frontend**: Deploy to Vercel (auto-uses Modal API via next.config.js default)
+- **Backend**: `cd backend && modal deploy modal_app.py`
+
+### Environment Variables
+- `NEXT_PUBLIC_API_URL`: Override API URL (default: Modal production URL)
+- `.env.local`: Local dev uses `http://localhost:8000`

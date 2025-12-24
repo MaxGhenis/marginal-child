@@ -307,3 +307,86 @@ def derive_marginal_from_absolute(df_absolute: pd.DataFrame, value_column: str, 
             })
 
     return pd.DataFrame(marginal_data)
+
+
+def calculate_us_all(
+    max_children: int,
+    year: int,
+    marital_status: str,
+    state_code: str,
+    spouse_income: float,
+    include_health_benefits: bool = True,
+) -> pd.DataFrame:
+    """Calculate both net_income and mtr in a single pass per child count.
+
+    Returns DataFrame with: income, num_children, net_income, mtr
+    """
+    import numpy as np
+
+    results = []
+    income_points = list(range(INCOME_MIN, INCOME_MAX + 1, INCOME_STEP))
+
+    for num_kids in range(max_children + 1):
+        situation = create_us_household_situation(num_kids, year, marital_status, state_code, spouse_income)
+        situation["axes"] = [[{"name": "employment_income", "count": len(income_points), "min": INCOME_MIN, "max": INCOME_MAX}]]
+
+        sim = USSimulation(situation=situation)
+
+        # Get net income
+        net_income_var = "household_net_income_including_health_benefits" if include_health_benefits else "household_net_income"
+        net_incomes = sim.calculate(net_income_var, year)
+
+        # Calculate MTR from gradient of net income (works for both with/without health)
+        mtr_values = np.zeros(len(income_points))
+        for i in range(len(income_points) - 1):
+            d_income = income_points[i+1] - income_points[i]
+            d_net = net_incomes[i+1] - net_incomes[i]
+            mtr_values[i] = 1 - (d_net / d_income)
+        mtr_values[-1] = mtr_values[-2] if len(income_points) > 1 else 0
+
+        for i, income in enumerate(income_points):
+            results.append({
+                "income": income,
+                "num_children": num_kids,
+                "net_income": float(net_incomes[i]),
+                "mtr": float(mtr_values[i]),
+            })
+
+    return pd.DataFrame(results)
+
+
+def calculate_uk_all(
+    max_children: int,
+    year: int,
+    region: str,
+    rent: int,
+    childcare_per_child: int,
+    brma: Optional[str] = None,
+) -> pd.DataFrame:
+    """Calculate both net_income and mtr in a single pass per child count.
+
+    Returns DataFrame with: income, num_children, net_income, mtr
+    """
+    results = []
+
+    for num_children in range(max_children + 1):
+        situation = create_uk_household_situation(num_children, year, region, rent, childcare_per_child, brma)
+        situation["axes"] = [[{"name": "employment_income", "count": 1001, "min": 0, "max": UK_INCOME_MAX, "period": year}]]
+
+        sim = UKSimulation(situation=situation)
+        all_incomes = sim.calculate("employment_income", year)
+        all_net_income = sim.calculate("household_net_income", year)
+        all_mtr = sim.calculate("marginal_tax_rate", year)
+
+        num_people = 1 + num_children
+        incomes = all_incomes if num_people == 1 else all_incomes[::num_people]
+
+        for i, income in enumerate(incomes):
+            results.append({
+                "income": float(income),
+                "num_children": num_children,
+                "net_income": float(all_net_income[i]),
+                "mtr": float(all_mtr[i]),
+            })
+
+    return pd.DataFrame(results)

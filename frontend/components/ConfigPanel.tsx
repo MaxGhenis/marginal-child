@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const UK_REGIONS = [
   ["LONDON", "London"],
@@ -17,6 +17,22 @@ const UK_REGIONS = [
   ["NORTHERN_IRELAND", "Northern Ireland"],
 ];
 
+const US_STATES = [
+  ["AL", "Alabama"], ["AK", "Alaska"], ["AZ", "Arizona"], ["AR", "Arkansas"],
+  ["CA", "California"], ["CO", "Colorado"], ["CT", "Connecticut"], ["DE", "Delaware"],
+  ["DC", "District of Columbia"], ["FL", "Florida"], ["GA", "Georgia"], ["HI", "Hawaii"],
+  ["ID", "Idaho"], ["IL", "Illinois"], ["IN", "Indiana"], ["IA", "Iowa"],
+  ["KS", "Kansas"], ["KY", "Kentucky"], ["LA", "Louisiana"], ["ME", "Maine"],
+  ["MD", "Maryland"], ["MA", "Massachusetts"], ["MI", "Michigan"], ["MN", "Minnesota"],
+  ["MS", "Mississippi"], ["MO", "Missouri"], ["MT", "Montana"], ["NE", "Nebraska"],
+  ["NV", "Nevada"], ["NH", "New Hampshire"], ["NJ", "New Jersey"], ["NM", "New Mexico"],
+  ["NY", "New York"], ["NC", "North Carolina"], ["ND", "North Dakota"], ["OH", "Ohio"],
+  ["OK", "Oklahoma"], ["OR", "Oregon"], ["PA", "Pennsylvania"], ["RI", "Rhode Island"],
+  ["SC", "South Carolina"], ["SD", "South Dakota"], ["TN", "Tennessee"], ["TX", "Texas"],
+  ["UT", "Utah"], ["VT", "Vermont"], ["VA", "Virginia"], ["WA", "Washington"],
+  ["WV", "West Virginia"], ["WI", "Wisconsin"], ["WY", "Wyoming"],
+];
+
 interface ConfigPanelProps {
   onCalculate: (config: any) => void;
   initialConfig: any;
@@ -24,10 +40,8 @@ interface ConfigPanelProps {
   onCountryChange?: (country: string) => void;
 }
 
-export default function ConfigPanel({ onCalculate, initialConfig, hasData, onCountryChange }: ConfigPanelProps) {
+export default function ConfigPanel({ onCalculate, initialConfig, onCountryChange }: ConfigPanelProps) {
   const [country, setCountry] = useState(initialConfig.country);
-  const [metric, setMetric] = useState(initialConfig.metric);
-  const [view, setView] = useState(initialConfig.view);
   const [maxChildren, setMaxChildren] = useState(initialConfig.maxChildren);
   const [year, setYear] = useState(initialConfig.year);
 
@@ -36,17 +50,26 @@ export default function ConfigPanel({ onCalculate, initialConfig, hasData, onCou
   const [rent, setRent] = useState((initialConfig.rent || 12000) / 12);
   const [childcare, setChildcare] = useState((initialConfig.childcarePerChild || 12000) / 12);
 
+  // US-specific
+  const [maritalStatus, setMaritalStatus] = useState(initialConfig.maritalStatus || "single");
+  const [stateCode, setStateCode] = useState(initialConfig.stateCode || "CA");
+  const [spouseIncome, setSpouseIncome] = useState(initialConfig.spouseIncome || 0);
+  const [includeHealthBenefits, setIncludeHealthBenefits] = useState(initialConfig.includeHealthBenefits !== false);
+
   const buildConfig = () => ({
     country,
-    metric,
-    view,
     maxChildren,
     year,
     ...(country === "UK" ? {
       region,
       rent: rent * 12,
       childcarePerChild: childcare * 12,
-    } : {}),
+    } : {
+      maritalStatus,
+      stateCode,
+      spouseIncome,
+      includeHealthBenefits,
+    }),
   });
 
   const handleSubmit = () => {
@@ -55,29 +78,9 @@ export default function ConfigPanel({ onCalculate, initialConfig, hasData, onCou
     onCalculate(config);
   };
 
-  const handleMetricChange = (newMetric: string) => {
-    setMetric(newMetric);
-    // Auto-trigger calculation when metric changes (if we already have data)
-    if (hasData) {
-      setTimeout(() => {
-        onCalculate({ ...buildConfig(), metric: newMetric });
-      }, 0);
-    }
-  };
-
-  const handleViewChange = (newView: string) => {
-    setView(newView);
-    // Auto-trigger calculation when view changes (if we already have data)
-    if (hasData) {
-      setTimeout(() => {
-        onCalculate({ ...buildConfig(), view: newView });
-      }, 0);
-    }
-  };
-
   return (
     <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Configuration</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">Household</h2>
 
       {/* Country Tabs */}
       <div className="flex space-x-2">
@@ -92,7 +95,7 @@ export default function ConfigPanel({ onCalculate, initialConfig, hasData, onCou
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
-          🇺🇸 US
+          US
         </button>
         <button
           onClick={() => {
@@ -105,87 +108,9 @@ export default function ConfigPanel({ onCalculate, initialConfig, hasData, onCou
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
-          🇬🇧 UK
+          UK
         </button>
       </div>
-
-      {/* Max Children */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Maximum Number of Children
-        </label>
-        <input
-          type="number"
-          value={maxChildren}
-          onChange={(e) => setMaxChildren(parseInt(e.target.value))}
-          min={1}
-          max={6}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#319795] focus:border-transparent"
-        />
-        <p className="text-xs text-gray-500 mt-1">{country === "UK" ? "Analyse" : "Analyze"} from 0 to this number</p>
-      </div>
-
-      <div className="border-t border-gray-200 my-4"></div>
-
-      {/* Metric Tabs */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Metric
-        </label>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handleMetricChange("net_income")}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              metric === "net_income"
-                ? "bg-[#319795] text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Net Income
-          </button>
-          <button
-            onClick={() => handleMetricChange("mtr")}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              metric === "mtr"
-                ? "bg-[#319795] text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            MTR
-          </button>
-        </div>
-      </div>
-
-      {/* View Tabs */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          View
-        </label>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handleViewChange("absolute")}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              view === "absolute"
-                ? "bg-[#319795] text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Absolute
-          </button>
-          <button
-            onClick={() => handleViewChange("marginal")}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              view === "marginal"
-                ? "bg-[#319795] text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Per Child
-          </button>
-        </div>
-      </div>
-
-      <div className="border-t border-gray-200 my-4"></div>
 
       {/* Year */}
       <div>
@@ -197,11 +122,106 @@ export default function ConfigPanel({ onCalculate, initialConfig, hasData, onCou
           onChange={(e) => setYear(parseInt(e.target.value))}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#319795] focus:border-transparent"
         >
-          {Array.from({ length: 15 }, (_, i) => 2021 + i).map((y) => (
+          {Array.from({ length: 10 }, (_, i) => 2024 + i).map((y) => (
             <option key={y} value={y}>{y}</option>
           ))}
         </select>
       </div>
+
+      {/* Max Children */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Maximum Children
+        </label>
+        <input
+          type="number"
+          value={maxChildren}
+          onChange={(e) => setMaxChildren(parseInt(e.target.value) || 1)}
+          min={1}
+          max={6}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#319795] focus:border-transparent"
+        />
+        <p className="text-xs text-gray-500 mt-1">{country === "UK" ? "Analyse" : "Analyze"} from 0 to {maxChildren}</p>
+      </div>
+
+      <div className="border-t border-gray-200 my-4"></div>
+
+      {/* US-specific inputs */}
+      {country === "US" && (
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Marital Status
+            </label>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setMaritalStatus("single")}
+                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                  maritalStatus === "single"
+                    ? "bg-[#319795] text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                Single
+              </button>
+              <button
+                onClick={() => setMaritalStatus("married")}
+                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                  maritalStatus === "married"
+                    ? "bg-[#319795] text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                Married
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              State
+            </label>
+            <select
+              value={stateCode}
+              onChange={(e) => setStateCode(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#319795] focus:border-transparent"
+            >
+              {US_STATES.map(([code, name]) => (
+                <option key={code} value={code}>{name}</option>
+              ))}
+            </select>
+          </div>
+
+          {maritalStatus === "married" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Spouse Income ($)
+              </label>
+              <input
+                type="number"
+                value={spouseIncome}
+                onChange={(e) => setSpouseIncome(parseInt(e.target.value) || 0)}
+                min={0}
+                step={1000}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#319795] focus:border-transparent"
+              />
+            </div>
+          )}
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="healthBenefits"
+              checked={includeHealthBenefits}
+              onChange={(e) => setIncludeHealthBenefits(e.target.checked)}
+              className="h-4 w-4 text-[#319795] border-gray-300 rounded focus:ring-[#319795]"
+            />
+            <label htmlFor="healthBenefits" className="text-sm text-gray-700">
+              Include health benefits
+            </label>
+          </div>
+        </>
+      )}
 
       {/* UK-specific inputs */}
       {country === "UK" && (
@@ -223,12 +243,12 @@ export default function ConfigPanel({ onCalculate, initialConfig, hasData, onCou
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Monthly Rent (£)
+              Monthly Rent
             </label>
             <input
               type="number"
               value={rent}
-              onChange={(e) => setRent(parseInt(e.target.value))}
+              onChange={(e) => setRent(parseInt(e.target.value) || 0)}
               min={0}
               step={50}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#319795] focus:border-transparent"
@@ -237,30 +257,31 @@ export default function ConfigPanel({ onCalculate, initialConfig, hasData, onCou
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Monthly Childcare per Child (£)
+              Monthly Childcare / Child
             </label>
             <input
               type="number"
               value={childcare}
-              onChange={(e) => setChildcare(parseInt(e.target.value))}
+              onChange={(e) => setChildcare(parseInt(e.target.value) || 0)}
               min={0}
               step={50}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#319795] focus:border-transparent"
             />
-            <p className="text-xs text-gray-500 mt-1">Full-time nursery for ages 1, 3, 5</p>
           </div>
         </>
       )}
 
       <button
         onClick={handleSubmit}
-        className="w-full bg-[#319795] hover:bg-[#2C7A7B] text-white font-medium py-2 px-4 rounded-md transition-colors"
+        className="w-full bg-[#319795] hover:bg-[#2C7A7B] text-white font-medium py-3 px-4 rounded-md transition-colors"
       >
         Calculate
       </button>
 
       <p className="text-xs text-gray-500 mt-2">
-        {country === "UK" ? "Parent age 35, children ages 1/3/5. BRMA not specified." : "All children age 10."}
+        {country === "UK"
+          ? "Single parent, age 35. Children ages 1, 3, 5."
+          : "All children age 10."}
       </p>
     </div>
   );

@@ -11,8 +11,10 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 from marginal_child.pure_calculations import (
+    calculate_uk_all,
     calculate_uk_mtr_absolute,
     calculate_uk_net_income_absolute,
+    calculate_us_all,
     calculate_us_mtr_absolute,
     calculate_us_net_income_absolute,
     derive_marginal_from_absolute,
@@ -55,15 +57,36 @@ class UKCalculationRequest(BaseModel):
     view: Literal["absolute", "marginal"] = "marginal"
 
 
+# Simplified request models for /all endpoints (no metric/view params)
+class USAllRequest(BaseModel):
+    max_children: int = Field(default=3, ge=1, le=6)
+    year: int = Field(default=2025, ge=2021, le=2035)
+    marital_status: Literal["single", "married"] = "single"
+    state_code: str = Field(default="TX", min_length=2, max_length=2)
+    spouse_income: float = Field(default=0, ge=0)
+    include_health_benefits: bool = True
+
+
+class UKAllRequest(BaseModel):
+    max_children: int = Field(default=3, ge=1, le=6)
+    year: int = Field(default=2025, ge=2021, le=2035)
+    region: str = "LONDON"
+    brma: Optional[str] = None
+    rent: int = Field(default=12000, ge=0)  # Annual
+    childcare_per_child: int = Field(default=8000, ge=0)  # Annual
+
+
 @app.get("/")
 async def root():
     """API root endpoint."""
     return {
         "name": "The Marginal Child API",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "endpoints": [
             "/calculate/us",
             "/calculate/uk",
+            "/calculate/us/all",
+            "/calculate/uk/all",
             "/health"
         ]
     }
@@ -141,6 +164,50 @@ async def calculate_uk(request: UKCalculationRequest):
                 data_list = smooth_marginal_mtr(data_list, window_size=20)
                 df = pd.DataFrame(data_list)
 
+        return {"data": df.to_dict(orient="records")}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/calculate/us/all")
+async def calculate_us_all_endpoint(request: USAllRequest):
+    """Calculate all US data (net_income + mtr) in single PE call per child count.
+
+    Returns data with: income, num_children, net_income, mtr
+    Frontend derives marginal values.
+    """
+    try:
+        df = calculate_us_all(
+            request.max_children,
+            request.year,
+            request.marital_status,
+            request.state_code,
+            request.spouse_income,
+            request.include_health_benefits,
+        )
+        return {"data": df.to_dict(orient="records")}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/calculate/uk/all")
+async def calculate_uk_all_endpoint(request: UKAllRequest):
+    """Calculate all UK data (net_income + mtr) in single PE call per child count.
+
+    Returns data with: income, num_children, net_income, mtr
+    Frontend derives marginal values.
+    """
+    try:
+        df = calculate_uk_all(
+            request.max_children,
+            request.year,
+            request.region,
+            request.rent,
+            request.childcare_per_child,
+            request.brma,
+        )
         return {"data": df.to_dict(orient="records")}
 
     except Exception as e:
