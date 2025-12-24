@@ -150,8 +150,8 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
 
       <h2 className="text-xl font-semibold text-gray-900 mb-4">{getTitle()}</h2>
 
-      <ResponsiveContainer width="100%" height={420}>
-        <LineChart data={chartData}>
+      <ResponsiveContainer width="100%" height={450}>
+        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis
             dataKey="income"
