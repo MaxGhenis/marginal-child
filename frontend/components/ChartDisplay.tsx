@@ -45,7 +45,7 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
   const isPercent = metric === "mtr";
 
   // Transform data for Recharts
-  const chartData = data
+  const chartData: Record<string, number>[] = data
     .filter(d => d.num_children === childrenCounts[0])
     .map(d => ({ income: d.income }));
 
