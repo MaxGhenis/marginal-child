@@ -7,6 +7,7 @@ import ChartDisplay from "@/components/ChartDisplay";
 export default function Home() {
   const [data, setData] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState("");
   const [currentCountry, setCurrentCountry] = useState("UK"); // Track current form state for UI
   const [config, setConfig] = useState({
     country: "UK",
@@ -106,6 +107,11 @@ export default function Home() {
     setConfig(newConfig);
     setCurrentCountry(newConfig.country);
 
+    // Generate child count list for status display
+    const childCounts = Array.from({ length: newConfig.maxChildren + 1 }, (_, i) => i);
+    const childLabels = childCounts.map(n => n === 1 ? "1 child" : `${n} children`).join(", ");
+    setLoadingStatus(`Calculating for ${childLabels}...`);
+
     try {
       // Single API call using /all endpoint
       const endpoint = newConfig.country === "US" ? "/calculate/us/all" : "/calculate/uk/all";
@@ -135,6 +141,8 @@ export default function Home() {
 
       const result = await response.json();
 
+      setLoadingStatus("Processing results...");
+
       // Derive marginal values client-side
       let processedData = deriveMarginals(result.data);
 
@@ -148,6 +156,7 @@ export default function Home() {
       alert(`Error: ${error}`);
     } finally {
       setLoading(false);
+      setLoadingStatus("");
     }
   };
 
@@ -179,7 +188,8 @@ export default function Home() {
             {loading && (
               <div className="flex flex-col items-center justify-center h-96">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#319795] mb-4"></div>
-                <div className="text-lg text-gray-500">Calculating...</div>
+                <div className="text-lg text-gray-600 font-medium">{loadingStatus}</div>
+                <div className="text-sm text-gray-400 mt-2">Running PolicyEngine simulation</div>
               </div>
             )}
 

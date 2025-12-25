@@ -87,12 +87,27 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
     return view === "value" ? "MTR" : "Change (pp)";
   };
 
-  // For value view, show "0 children", "1 child", etc. For incremental, show "Child 1", "Child 2", etc.
+  // Legend labels: "0 children", "1 child", "2 children" for value view
+  // "1st → 2nd child", "2nd → 3rd child" for incremental view
   const getLegendLabel = (numChildren: number) => {
     if (view === "value") {
       return numChildren === 1 ? "1 child" : `${numChildren} children`;
     }
-    return `Child ${numChildren}`;
+    // Incremental: show transition label
+    const ordinal = (n: number) => {
+      const s = ["th", "st", "nd", "rd"];
+      const v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    };
+    return `${ordinal(numChildren - 1)} → ${ordinal(numChildren)} child`;
+  };
+
+  // Tooltip labels for clearer display
+  const getTooltipLabel = (numChildren: number) => {
+    if (view === "value") {
+      return numChildren === 1 ? "1 child" : `${numChildren} children`;
+    }
+    return `Adding child #${numChildren}`;
   };
 
   return (
@@ -180,13 +195,21 @@ export default function ChartDisplay({ data, config }: ChartDisplayProps) {
             }}
           />
           <Tooltip
-            formatter={formatValue}
+            formatter={(value: number, name: string) => {
+              const numChildren = parseInt(name.replace("child_", ""));
+              return [formatValue(value), getTooltipLabel(numChildren)];
+            }}
             labelFormatter={(value) => `Earnings: ${currency}${Number(value).toLocaleString()}`}
             contentStyle={{
               fontFamily: "Inter, sans-serif",
               backgroundColor: "white",
               border: "1px solid #E5E7EB",
               borderRadius: "0.375rem",
+              padding: "12px",
+            }}
+            itemStyle={{
+              fontFamily: "Inter, sans-serif",
+              padding: "2px 0",
             }}
           />
           <Legend
