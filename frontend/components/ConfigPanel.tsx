@@ -208,16 +208,16 @@ export default function ConfigPanel({ onCalculate, initialConfig, onCountryChang
             </div>
           )}
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-start space-x-2">
             <input
               type="checkbox"
               id="healthBenefits"
               checked={includeHealthBenefits}
               onChange={(e) => setIncludeHealthBenefits(e.target.checked)}
-              className="h-4 w-4 text-[#319795] border-gray-300 rounded focus:ring-[#319795]"
+              className="h-4 w-4 mt-0.5 text-[#319795] border-gray-300 rounded focus:ring-[#319795]"
             />
             <label htmlFor="healthBenefits" className="text-sm text-gray-700">
-              Include health benefits
+              Include health benefits (assumes no ESI)
             </label>
           </div>
         </>
