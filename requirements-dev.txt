@@ -1,0 +1,9 @@
+streamlit>=1.28.0
+plotly>=5.17.0
+pandas>=2.1.0
+numpy>=2.1.0
+policyengine-us>=1.0.0
+-e /Users/maxghenis/PolicyEngine/policyengine-uk
+pytest>=8.0.0
+pytest-cov>=4.1.0
+black>=24.0.0

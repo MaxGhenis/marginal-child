@@ -1,112 +1,213 @@
 # The Marginal Child
 
-An interactive web application that analyzes how government benefits change with each additional child, powered by [PolicyEngine-US](https://github.com/PolicyEngine/policyengine-us).
+Analyze marginal tax rates and benefits by number of children across the US and UK.
+
+## Architecture
+
+### Modern Stack
+
+**Frontend**: Next.js 14 + React + TypeScript + Tailwind CSS + Recharts
+**Backend**: FastAPI + PolicyEngine-US + PolicyEngine-UK
+**Design**: PolicyEngine app-v2 design tokens (Inter font, Teal primary color)
+
+### Project Structure
+
+```
+marginal-child/
+├── backend/                 # FastAPI server
+│   ├── app/
+│   │   └── main.py         # API endpoints
+│   └── requirements.txt
+├── frontend/                # Next.js app
+│   ├── app/
+│   │   ├── page.tsx        # Main page
+│   │   ├── layout.tsx      # Root layout
+│   │   └── globals.css     # Inter font + Tailwind
+│   └── components/
+│       ├── ConfigPanel.tsx  # Configuration UI
+│       └── ChartDisplay.tsx # Recharts visualization
+├── marginal_child/          # Pure Python package
+│   ├── pure_calculations.py # Core logic (no UI dependencies)
+│   ├── constants.py         # App-v2 colors, regions, defaults
+│   └── streamlit_ui.py      # Legacy Streamlit UI
+├── app.py                  # Legacy Streamlit app
+└── tests/                  # Pytest test suite
+```
 
 ## Features
 
-- **Dynamic Benefit Calculations**: Uses PolicyEngine-US for accurate, up-to-date calculations of:
-  - SNAP (Food Stamps)
-  - WIC
-  - Medicaid
-  - CHIP (Children's Health Insurance Program)
-  - Premium Tax Credits (ACA Marketplace)
-  - EITC (Earned Income Tax Credit)
-  - Child Tax Credit
-  - Child and Dependent Care Credit
-  - Housing subsidies
+### 4 Visualization Modes
 
-- **Interactive Visualizations**:
-  - Benefit cliff analysis showing how benefits phase out with income
-  - Net income vs employment income comparison
-  - Marginal benefit per additional child across income ranges
+**Metrics:**
+1. **Net Income**: Income after taxes and benefits
+2. **Marginal Tax Rate**: % of additional earnings kept
 
-- **State-Specific Analysis**: Calculate benefits for all 50 states plus DC
+**Views:**
+1. **Absolute**: Show curves for 0-N children
+2. **Marginal**: Show change per additional child
 
-- **Customizable Household Configuration**:
-  - Marital status
-  - Number and ages of children
-  - Housing and childcare costs
-  - Employment income for both spouses
+**All combinations available for both US and UK.**
 
-## Installation
+### Countries
 
-### Prerequisites
+**United States:**
+- All 50 states + DC
+- Federal and state taxes
+- SNAP, WIC, EITC, CTC, Medicaid, CHIP, ACA subsidies
+- Marital status and spouse income options
 
-- Python 3.10+
-- Node.js 22+
-- uv (Python package manager)
+**United Kingdom:**
+- 12 ITL1 regions
+- Universal Credit, Child Benefit, Income Tax, National Insurance
+- Configurable rent and childcare costs
+- Single parents with children ages 1, 3, 5
 
-### Setup
+## Quick Start
 
-1. Clone the repository:
+### Development
+
 ```bash
-git clone https://github.com/yourusername/the-marginal-child.git
-cd the-marginal-child
-```
+# Terminal 1: Start backend
+cd backend
+python3.13 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
 
-2. Install Python dependencies:
-```bash
-cd api
-uv venv
-uv pip install -r requirements.txt
-cd ..
-```
-
-3. Install Node dependencies:
-```bash
+# Terminal 2: Start frontend
+cd frontend
 npm install
-```
-
-## Running the Application
-
-You'll need to run both the Python API backend and the React frontend:
-
-### Terminal 1: Start the API server
-```bash
-cd api
-uv run python app.py
-```
-The API will run on http://localhost:5000
-
-### Terminal 2: Start the React development server
-```bash
 npm run dev
 ```
-The app will open at http://localhost:5173
 
-## Usage
+**URLs:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
-1. **Configure Household**: Set your household parameters including marital status, state, number of children, and income.
+### Legacy Streamlit (Deprecated)
 
-2. **Add Child Ages**: Specify ages for each child (affects benefit eligibility).
+```bash
+# Use .venv (has both policyengine-us and policyengine-uk)
+source .venv/bin/activate
+streamlit run app.py
+```
 
-3. **Set Analysis Parameters**: Choose the income range and step size for the analysis.
+## API Endpoints
 
-4. **Run Analysis**:
-   - **Calculate Current Benefits**: See benefits at your specified income level
-   - **Analyze Benefit Cliff**: Visualize how benefits change across income ranges
-   - **Analyze Marginal Child**: See the marginal benefit of each additional child
+### POST /calculate/us
 
-## How It Works
+Calculate US metrics.
 
-The application uses PolicyEngine-US's microsimulation model to calculate benefits based on actual federal and state policy rules. Unlike simple calculators with hard-coded values, this app:
+**Request:**
+```json
+{
+  "max_children": 3,
+  "year": 2025,
+  "marital_status": "single",
+  "state_code": "CA",
+  "spouse_income": 0,
+  "include_health_benefits": true,
+  "metric": "mtr",
+  "view": "absolute"
+}
+```
 
-- Uses actual policy parameters (Federal Poverty Guidelines, benefit formulas, etc.) from PolicyEngine
-- Accounts for interactions between programs
-- Includes state-specific variations
-- Updates automatically as PolicyEngine updates its models
+**Response:**
+```json
+{
+  "data": [
+    {"income": 0, "num_children": 0, "mtr": 0.0},
+    {"income": 1000, "num_children": 0, "mtr": 0.15},
+    ...
+  ]
+}
+```
 
-## Technology Stack
+### POST /calculate/uk
 
-- **Backend**: Flask API with PolicyEngine-US
-- **Frontend**: React with Vite
-- **UI Components**: Material-UI
-- **Charts**: Plotly.js
-- **Calculations**: PolicyEngine-US microsimulation engine
+Calculate UK metrics.
+
+**Request:**
+```json
+{
+  "max_children": 3,
+  "year": 2025,
+  "region": "LONDON",
+  "rent": 12000,
+  "childcare_per_child": 12000,
+  "brma": null,
+  "metric": "mtr",
+  "view": "absolute"
+}
+```
+
+## Key Findings
+
+### UK Marginal Tax Rate Spikes
+
+**Universal Credit Taper (£10-50k):**
+- 67.6% MTR due to UC withdrawal
+- Extended by housing and childcare support
+- "Benefit trap" where earning more provides minimal net income gain
+
+**Child Benefit Withdrawal (£50-70k):**
+- Higher MTRs for more children (48.8% to 57.7%)
+- High Income Child Benefit Charge (1% per £100 over £60k)
+
+**Personal Allowance Taper (£100-125k):**
+- 62% MTR - the "60% tax trap"
+- £1 allowance reduction per £2 earned
+
+### Childcare Cost Assumptions
+
+**UK**: £1,000/month per child (full-time nursery for ages 1, 3, 5)
+**Reality**: Average full-time nursery costs £1,035-£1,247/month (£1,800+/month in London)
+
+Our assumptions are **conservative** - real childcare costs are higher.
+
+## Technology
+
+- **PolicyEngine-US v1.428.0**: US federal and state tax-benefit model
+- **PolicyEngine-UK v2.55.3**: UK tax-benefit model
+- **Next.js 14**: React framework
+- **FastAPI**: Python async web framework
+- **Recharts**: React charting library
+- **Tailwind CSS**: Utility-first CSS framework
+- **Inter Font**: PolicyEngine company font
+
+## Deployment
+
+**Frontend**: Deploy to Vercel
+**Backend**: Deploy to container platform (Google Cloud Run, Railway, etc.)
+
+### Environment Variables
+
+**Backend:**
+- `CORS_ORIGINS`: Comma-separated allowed origins (production)
+
+**Frontend:**
+- `NEXT_PUBLIC_API_URL`: Backend API URL (default: http://localhost:8000)
+
+## Design System
+
+Uses PolicyEngine app-v2 design tokens:
+- Primary color: Teal (#319795)
+- Font: Inter
+- Color gradients: Gray-400 → Teal-300
+- Logo: Teal version
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+Contributions welcome! The codebase is structured for TDD:
+
+```bash
+# Run tests
+pytest tests/ -v
+
+# Test coverage
+pytest tests/ --cov=marginal_child
+```
 
 ## License
 
@@ -114,4 +215,4 @@ MIT
 
 ## Acknowledgments
 
-Built using [PolicyEngine-US](https://policyengine.org), the open-source microsimulation model for US tax and benefit policy.
+Powered by [PolicyEngine](https://policyengine.org), the open-source tax-benefit microsimulation platform.

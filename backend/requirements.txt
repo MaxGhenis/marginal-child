@@ -1,0 +1,14 @@
+# FastAPI and server
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.12.0
+pydantic-settings==2.6.0
+
+# CORS middleware
+fastapi-cors==0.0.6
+
+# PolicyEngine dependencies
+policyengine-us>=1.428.0
+policyengine-uk>=2.55.0
+numpy>=2.1.0
+pandas>=2.1.0
