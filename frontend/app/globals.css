@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@import "@policyengine/design-system/tokens.css";
+
+@theme {
+  --font-sans: var(--pe-font-family-primary);
+  --font-mono: var(--pe-font-family-mono);
+  --color-pe-primary-50: var(--pe-color-primary-50);
+  --color-pe-primary-100: var(--pe-color-primary-100);
+  --color-pe-primary-200: var(--pe-color-primary-200);
+  --color-pe-primary-300: var(--pe-color-primary-300);
+  --color-pe-primary-400: var(--pe-color-primary-400);
+  --color-pe-primary-500: var(--pe-color-primary-500);
+  --color-pe-primary-600: var(--pe-color-primary-600);
+  --color-pe-primary-700: var(--pe-color-primary-700);
+  --color-pe-primary-800: var(--pe-color-primary-800);
+  --color-pe-primary-900: var(--pe-color-primary-900);
+  --color-pe-gray-50: var(--pe-color-gray-50);
+  --color-pe-gray-100: var(--pe-color-gray-100);
+  --color-pe-gray-200: var(--pe-color-gray-200);
+  --color-pe-gray-500: var(--pe-color-gray-500);
+  --color-pe-gray-600: var(--pe-color-gray-600);
+  --color-pe-gray-700: var(--pe-color-gray-700);
+  --color-pe-blue-500: var(--pe-color-blue-500);
+  --color-pe-blue-700: var(--pe-color-blue-700);
+  --color-pe-success: var(--pe-color-success);
+  --color-pe-error: var(--pe-color-error);
+  --color-pe-warning: var(--pe-color-warning);
+}
+
+body {
+  font-family: var(--font-sans);
+}
