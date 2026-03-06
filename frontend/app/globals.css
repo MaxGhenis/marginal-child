@@ -1,29 +1,30 @@
 @import "tailwindcss";
+@import "@policyengine/design-system/tokens.css";
 
 @theme {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --color-pe-primary-50: #E6FFFA;
-  --color-pe-primary-100: #B2F5EA;
-  --color-pe-primary-200: #81E6D9;
-  --color-pe-primary-300: #4FD1C5;
-  --color-pe-primary-400: #38B2AC;
-  --color-pe-primary-500: #319795;
-  --color-pe-primary-600: #2C7A7B;
-  --color-pe-primary-700: #285E61;
-  --color-pe-primary-800: #234E52;
-  --color-pe-primary-900: #1D4044;
-  --color-pe-gray-50: #F9FAFB;
-  --color-pe-gray-100: #F2F4F7;
-  --color-pe-gray-200: #E2E8F0;
-  --color-pe-gray-500: #6B7280;
-  --color-pe-gray-600: #4B5563;
-  --color-pe-gray-700: #344054;
-  --color-pe-blue-500: #0EA5E9;
-  --color-pe-blue-700: #026AA2;
-  --color-pe-success: #22C55E;
-  --color-pe-error: #EF4444;
-  --color-pe-warning: #FEC601;
+  --font-sans: var(--pe-font-family-primary);
+  --font-mono: var(--pe-font-family-mono);
+  --color-pe-primary-50: var(--pe-color-primary-50);
+  --color-pe-primary-100: var(--pe-color-primary-100);
+  --color-pe-primary-200: var(--pe-color-primary-200);
+  --color-pe-primary-300: var(--pe-color-primary-300);
+  --color-pe-primary-400: var(--pe-color-primary-400);
+  --color-pe-primary-500: var(--pe-color-primary-500);
+  --color-pe-primary-600: var(--pe-color-primary-600);
+  --color-pe-primary-700: var(--pe-color-primary-700);
+  --color-pe-primary-800: var(--pe-color-primary-800);
+  --color-pe-primary-900: var(--pe-color-primary-900);
+  --color-pe-gray-50: var(--pe-color-gray-50);
+  --color-pe-gray-100: var(--pe-color-gray-100);
+  --color-pe-gray-200: var(--pe-color-gray-200);
+  --color-pe-gray-500: var(--pe-color-gray-500);
+  --color-pe-gray-600: var(--pe-color-gray-600);
+  --color-pe-gray-700: var(--pe-color-gray-700);
+  --color-pe-blue-500: var(--pe-color-blue-500);
+  --color-pe-blue-700: var(--pe-color-blue-700);
+  --color-pe-success: var(--pe-color-success);
+  --color-pe-error: var(--pe-color-error);
+  --color-pe-warning: var(--pe-color-warning);
 }
 
 body {

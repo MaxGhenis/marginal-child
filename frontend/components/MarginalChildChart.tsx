@@ -10,6 +10,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { colors } from "@policyengine/design-system/tokens";
+import { chartColors } from "@policyengine/design-system/charts";
 
 interface ApiDataPoint {
   income: number;
@@ -23,7 +25,7 @@ interface ChartDataPoint {
   [key: string]: number;
 }
 
-const SERIES_COLORS = ["#319795", "#0EA5E9", "#285E61", "#026AA2"];
+const FONT_FAMILY = "Inter, sans-serif";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", {
@@ -38,10 +40,8 @@ interface MarginalChildChartProps {
 }
 
 export default function MarginalChildChart({ data }: MarginalChildChartProps) {
-  // Get unique child numbers
   const childNumbers = [...new Set(data.map((d) => d.num_children))].sort();
 
-  // Transform data into recharts format: { income, child1, child2, ... }
   const incomes = [...new Set(data.map((d) => d.income))].sort((a, b) => a - b);
   const chartData: ChartDataPoint[] = incomes.map((income) => {
     const point: ChartDataPoint = { income };
@@ -58,7 +58,7 @@ export default function MarginalChildChart({ data }: MarginalChildChartProps) {
     <div className="rounded-lg bg-white p-6 shadow-sm">
       <h2
         className="mb-4 text-center text-lg font-semibold text-pe-gray-700"
-        style={{ fontFamily: "Inter, sans-serif" }}
+        style={{ fontFamily: FONT_FAMILY }}
       >
         Net income change from taxes and benefits per additional child
       </h2>
@@ -67,7 +67,7 @@ export default function MarginalChildChart({ data }: MarginalChildChartProps) {
           data={chartData}
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+          <CartesianGrid strokeDasharray="3 3" stroke={colors.border.light} />
           <XAxis
             dataKey="income"
             tickFormatter={formatCurrency}
@@ -75,9 +75,9 @@ export default function MarginalChildChart({ data }: MarginalChildChartProps) {
               value: "Earnings",
               position: "insideBottom",
               offset: -5,
-              style: { fontFamily: "Inter, sans-serif", fill: "#344054" },
+              style: { fontFamily: FONT_FAMILY, fill: colors.gray[700] },
             }}
-            tick={{ fontFamily: "Inter, sans-serif", fontSize: 12 }}
+            tick={{ fontFamily: FONT_FAMILY, fontSize: 12 }}
           />
           <YAxis
             tickFormatter={formatCurrency}
@@ -87,30 +87,29 @@ export default function MarginalChildChart({ data }: MarginalChildChartProps) {
               position: "insideLeft",
               offset: 10,
               style: {
-                fontFamily: "Inter, sans-serif",
-                fill: "#344054",
+                fontFamily: FONT_FAMILY,
+                fill: colors.gray[700],
                 textAnchor: "middle",
               },
             }}
-            tick={{ fontFamily: "Inter, sans-serif", fontSize: 12 }}
+            tick={{ fontFamily: FONT_FAMILY, fontSize: 12 }}
             domain={[0, "auto"]}
           />
           <Tooltip
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            formatter={((value: any, name: any) => [
+            formatter={((value: number, name: string) => [
               formatCurrency(value ?? 0),
               String(name ?? ""),
             ]) as any}
-            labelFormatter={((label: any) =>
+            labelFormatter={((label: number) =>
               `Earnings: ${formatCurrency(Number(label) || 0)}`) as any}
             contentStyle={{
-              fontFamily: "Inter, sans-serif",
+              fontFamily: FONT_FAMILY,
               borderRadius: "8px",
-              border: "1px solid #E2E8F0",
+              border: `1px solid ${colors.border.light}`,
             }}
           />
           <Legend
-            wrapperStyle={{ fontFamily: "Inter, sans-serif" }}
+            wrapperStyle={{ fontFamily: FONT_FAMILY }}
           />
           {childNumbers.map((childNum, index) => (
             <Line
@@ -118,7 +117,7 @@ export default function MarginalChildChart({ data }: MarginalChildChartProps) {
               type="monotone"
               dataKey={`child${childNum}`}
               name={`Child ${childNum}`}
-              stroke={SERIES_COLORS[index % SERIES_COLORS.length]}
+              stroke={chartColors.series[index % chartColors.series.length]}
               strokeWidth={3}
               dot={false}
               activeDot={{ r: 5 }}

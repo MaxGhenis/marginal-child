@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@policyengine/design-system": "^0.3.0",
     "@tabler/icons-react": "^3.39.0",
     "axios": "^1.13.6",
     "next": "16.1.6",
