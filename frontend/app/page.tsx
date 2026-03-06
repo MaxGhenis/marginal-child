@@ -7,8 +7,14 @@ import InputPanel from "../components/InputPanel";
 import MarginalChildChart from "../components/MarginalChildChart";
 import { IconLoader2 } from "@tabler/icons-react";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
+// Modal gives each function its own URL. For local Flask dev, set
+// NEXT_PUBLIC_API_STATES_URL=http://localhost:5001/api/states etc.
+const STATES_URL =
+  process.env.NEXT_PUBLIC_API_STATES_URL ||
+  "https://policyengine--marginal-child-states.modal.run";
+const MARGINAL_CHILD_URL =
+  process.env.NEXT_PUBLIC_API_MARGINAL_CHILD_URL ||
+  "https://policyengine--marginal-child-marginal-child.modal.run";
 
 interface Params {
   marital_status: string;
@@ -54,7 +60,7 @@ export default function Home() {
       try {
         const paramsToUse = overrideParams || params;
         const response = await axios.post(
-          `${API_URL}/marginal_child`,
+          `${MARGINAL_CHILD_URL}`,
           paramsToUse
         );
 
@@ -87,11 +93,11 @@ export default function Home() {
 
     const init = async () => {
       try {
-        const response = await axios.get(`${API_URL}/states`);
+        const response = await axios.get(`${STATES_URL}`);
         setStates(response.data);
 
         const calcResponse = await axios.post(
-          `${API_URL}/marginal_child`,
+          `${MARGINAL_CHILD_URL}`,
           params
         );
         setMarginalChildData(calcResponse.data);
