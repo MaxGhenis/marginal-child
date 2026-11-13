@@ -32,7 +32,7 @@ An interactive web application that analyzes how government benefits change with
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - Node.js 22+
 - uv (Python package manager)
 
